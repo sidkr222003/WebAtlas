@@ -1,0 +1,121 @@
+'use client';
+
+import { cn } from '@/lib/utils';
+import type { Collection } from '@/lib/types';
+import { Menu, X, Grid3X3, Briefcase, Zap, Heart, Palette } from 'lucide-react';
+import { useState } from 'react';
+
+interface MobileHeaderProps {
+  collections: Collection[];
+  selectedCollection: string | null;
+  onSelectCollection: (collectionId: string | null) => void;
+}
+
+const collectionIcons: Record<string, React.ReactNode> = {
+  work: <Briefcase className="w-5 h-5" />,
+  entertainment: <Zap className="w-5 h-5" />,
+  developer: <Palette className="w-5 h-5" />,
+  personal: <Heart className="w-5 h-5" />,
+};
+
+export function MobileHeader({
+  collections,
+  selectedCollection,
+  onSelectCollection,
+}: MobileHeaderProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const getCollectionName = () => {
+    if (selectedCollection === null) return 'All Items';
+    return collections.find(c => c.id === selectedCollection)?.name || 'All Items';
+  };
+
+  return (
+    <>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-popover/95 backdrop-blur-sm border-b border-border">
+        <div className="flex items-center justify-between p-4">
+          <h1 className="text-lg font-bold text-accent">
+            Web<span className="text-foreground">Atlas</span>
+          </h1>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 hover:bg-card/30 rounded-lg transition-colors"
+          >
+            <Menu className="w-6 h-6 text-foreground" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Drawer */}
+      {isOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setIsOpen(false)}>
+          <div className="fixed left-0 top-0 h-full w-64 bg-popover/95 backdrop-blur-sm flex flex-col pt-20 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-card/30 rounded-lg transition-colors"
+            >
+              <X className="w-6 h-6 text-foreground" />
+            </button>
+            
+            <div className="px-4 py-2">
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-3">
+                Collections
+              </h2>
+              <nav className="space-y-1">
+                <button
+                  onClick={() => {
+                    onSelectCollection(null);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-3",
+                    selectedCollection === null
+                      ? "bg-accent text-accent-foreground"
+                      : "text-foreground hover:bg-card/50"
+                  )}
+                >
+                  <Grid3X3 className="w-5 h-5 shrink-0" />
+                  <span>All Items</span>
+                </button>
+
+                {collections.map((collection) => (
+                  <button
+                    key={collection.id}
+                    onClick={() => {
+                      onSelectCollection(collection.id);
+                      setIsOpen(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-3",
+                      selectedCollection === collection.id
+                        ? "bg-accent text-accent-foreground"
+                        : "text-foreground hover:bg-card/50"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 flex items-center justify-center shrink-0",
+                      selectedCollection === collection.id ? "text-accent-foreground" : "text-muted-foreground"
+                    )}>
+                      {collectionIcons[collection.id] || <Grid3X3 className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate">{collection.name}</p>
+                      <p className={cn(
+                        "text-xs",
+                        selectedCollection === collection.id
+                          ? "opacity-80"
+                          : "text-muted-foreground"
+                      )}>
+                        {collection.items.length} items
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
